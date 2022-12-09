@@ -1,34 +1,46 @@
 <template>
   <div class="room-main-container">
-    <el-dialog
-        title="登录账号"
-        :visible.sync="dialogVisible"
-        width="450px"
-        height="200px"
-        :destroy-on-close="true">
+    <el-dialog title="登录账号" :visible.sync="dialogVisible" width="450px" height="200px" :destroy-on-close="true">
       <Login @loginResult="handleLogin"></Login>
     </el-dialog>
     <div class="room-left">
       <div v-if="isLive()" class="room-left-video">
-        <ArtPlayerTest ref="childPlayer" v-if="isLive()" class="room-left-video-play" @notSupport="notSupport"
-                       @newDanmuSend="newDanmuSend" :platform="platform" :room-id="roomId"
-                       :is-live="isLive" :ban-active="banActive" :ban-level="banLevel"
-                       :ban-content-list="banContentList" :checked-content-list="checkedContentList"
-                        :danmu-style="danmuStyle" :danmu-speed="danmuSpeed" :danmu-area="danmuArea"
-                        :danmu-num="danmuNum"/>
+        <Player
+          ref="childPlayer"
+          v-if="isLive()"
+          class="room-left-video-play"
+          @notSupport="notSupport"
+          @newDanmuSend="newDanmuSend"
+          :platform="platform"
+          :room-id="roomId"
+          :is-live="isLive"
+          :ban-active="banActive"
+          :ban-level="banLevel"
+          :ban-content-list="banContentList"
+          :checked-content-list="checkedContentList"
+          :danmu-style="danmuStyle"
+          :danmu-speed="danmuSpeed"
+          :danmu-area="danmuArea"
+          :danmu-num="danmuNum"
+        />
       </div>
       <div v-else class="room-left-video-notLive">直播间未开播</div>
       <div class="room-left-info">
         <div class="room-left-info-head">
-          <el-image class="head-pic" :src=roomInfo.ownerHeadPic :preview-src-list="getPreList(roomInfo.ownerHeadPic)"  />
+          <el-image
+            class="head-pic"
+            :src="roomInfo.ownerHeadPic"
+            :preview-src-list="getPreList(roomInfo.ownerHeadPic)"
+          />
         </div>
         <div class="room-left-info-after-head">
           <div class="room-left-info-after-head-name">
-            <div :class="isLive() ? 'info-isLive' : 'info-notLive'" style="font-size: small">{{ isLive() ? "直播中" : "未开播" }}</div>{{ roomInfo.roomName }}
+            <div :class="isLive() ? 'info-isLive' : 'info-notLive'" style="font-size: small">
+              {{ isLive() ? '直播中' : '未开播' }}
+            </div>
+            {{ roomInfo.roomName }}
           </div>
-          <div class="room-left-info-after-head-owner">
-            {{ getPlatform(platform) }} · {{ roomInfo.ownerName }}
-          </div>
+          <div class="room-left-info-after-head-owner">{{ getPlatform(platform) }} · {{ roomInfo.ownerName }}</div>
         </div>
         <div class="room-left-info-right">
           <div class="room-left-info-right-link">
@@ -37,38 +49,60 @@
             </el-tooltip>
           </div>
           <div v-if="platform != 'cc'" class="room-left-info-right-ban">
-            <el-popover
-                placement="bottom"
-                width="330"
-                trigger="manual"
-                v-model="popoverVisible"
-                @hide="banCancel()">
+            <el-popover placement="bottom" width="330" trigger="manual" v-model="popoverVisible" @hide="banCancel()">
               <el-form v-loading="loading" label-position="left" :model="form" size="mini">
-                <div v-if="isLogin != 'true'" class="room-left-info-right-ban-login-div" >
+                <div v-if="isLogin != 'true'" class="room-left-info-right-ban-login-div">
                   <div class="room-left-info-right-ban-login" @click="dialogVisible = true">登录保存屏蔽信息</div>
                 </div>
                 <el-form-item label="屏蔽开关">
                   <el-switch v-model="banActiveTemp"></el-switch>
                 </el-form-item>
                 <el-form-item :label="getPlatform(platform) + levelBanTxt">
-                  <el-input-number class="user-level" :disabled="platform=='huya'?true:false" v-model="banLevelTemp" :min="1" :max="99" controls-position="right" label="描述文字"></el-input-number>
-                  <div v-if="platform=='huya'" style="font-weight: lighter">(虎牙暂不支持)</div>
+                  <el-input-number
+                    class="user-level"
+                    :disabled="platform == 'huya' ? true : false"
+                    v-model="banLevelTemp"
+                    :min="1"
+                    :max="99"
+                    controls-position="right"
+                    label="描述文字"
+                  ></el-input-number>
+                  <div v-if="platform == 'huya'" style="font-weight: lighter">(虎牙暂不支持)</div>
                 </el-form-item>
                 <div class="global-ban">
-                  <span>关键词屏蔽</span><span style="font-weight: lighter;font-size: 15px">(支持正则)</span>
+                  <span>关键词屏蔽</span><span style="font-weight: lighter; font-size: 15px">(支持正则)</span>
                 </div>
                 <div class="ban-content-div">
                   <el-input id="contentInput" v-model="newContent" placeholder="请输入屏蔽内容" size="small"></el-input>
-                  <el-button v-if="!hasNewContent(newContent)" disabled class="ban-content-btn" type="primary" size="small">添加</el-button>
-                  <el-button v-if="hasNewContent(newContent)" @click="addBan(newContent)" class="ban-content-btn" type="primary" size="small">添加</el-button>
+                  <el-button
+                    v-if="!hasNewContent(newContent)"
+                    disabled
+                    class="ban-content-btn"
+                    type="primary"
+                    size="small"
+                    >添加</el-button
+                  >
+                  <el-button
+                    v-if="hasNewContent(newContent)"
+                    @click="addBan(newContent)"
+                    class="ban-content-btn"
+                    type="primary"
+                    size="small"
+                    >添加</el-button
+                  >
                 </div>
                 <div style="margin-bottom: 10px">屏蔽列表(勾选生效)</div>
                 <div class="ban-content-list">
                   <el-checkbox-group v-model="checkedContentListTemp">
                     <el-row :gutter="20">
-                      <el-col style="position: relative;margin-bottom: 10px;overflow-x: hidden" :span="12" v-for="(content, index) in banContentListComputed" :key="index">
+                      <el-col
+                        style="position: relative; margin-bottom: 10px; overflow-x: hidden"
+                        :span="12"
+                        v-for="(content, index) in banContentListComputed"
+                        :key="index"
+                      >
                         <div @mouseover="overCheck($event)" @mouseout="outCheck($event)">
-                          <el-checkbox style="overflow: hidden;" :label="content"></el-checkbox>
+                          <el-checkbox style="overflow: hidden" :label="content"></el-checkbox>
                           <i class="el-icon-error ban-content-list-icon" @click="deleteContent($event)"></i>
                         </div>
                       </el-col>
@@ -77,37 +111,89 @@
                 </div>
                 <div class="danmu-style-title">弹幕样式设置</div>
                 <div class="danmu-cap-div">
-                  <span>不透明度</span><el-slider :show-tooltip="false" @change="saveFont" class="danmu-cap" v-model="danmuStyle.opacity"></el-slider><span class="danmu-cap-value">{{ danmuStyle.opacity }}%</span>
+                  <span>不透明度</span
+                  ><el-slider
+                    :show-tooltip="false"
+                    @change="saveFont"
+                    class="danmu-cap"
+                    v-model="danmuStyle.opacity"
+                  ></el-slider
+                  ><span class="danmu-cap-value">{{ danmuStyle.opacity }}%</span>
                 </div>
                 <div class="danmu-cap-div">
-                  <span>弹幕字号</span><el-slider :show-tooltip="false" @change="saveFont" class="danmu-cap" v-model="danmuStyle.fontSize"></el-slider><span class="danmu-cap-value">{{ danmuStyle.fontSize }}%</span>
+                  <span>弹幕字号</span
+                  ><el-slider
+                    :show-tooltip="false"
+                    @change="saveFont"
+                    class="danmu-cap"
+                    v-model="danmuStyle.fontSize"
+                  ></el-slider
+                  ><span class="danmu-cap-value">{{ danmuStyle.fontSize }}%</span>
                 </div>
                 <div class="danmu-cap-div">
-                  <span>字体粗细</span><el-slider :show-tooltip="false" @change="saveFont" :step="50" show-stops class="danmu-cap" v-model="danmuStyle.fontWeight"></el-slider><span class="danmu-cap-value">{{ weightWord(danmuStyle.fontWeight) }}</span>
+                  <span>字体粗细</span
+                  ><el-slider
+                    :show-tooltip="false"
+                    @change="saveFont"
+                    :step="50"
+                    show-stops
+                    class="danmu-cap"
+                    v-model="danmuStyle.fontWeight"
+                  ></el-slider
+                  ><span class="danmu-cap-value">{{ weightWord(danmuStyle.fontWeight) }}</span>
                 </div>
                 <div class="danmu-cap-div">
                   <span>弹幕描边</span><el-switch v-model="danmuStyle.textShadow" style="margin-left: 20px"></el-switch>
                 </div>
                 <div class="danmu-cap-div">
-                  <span>弹幕速度</span><el-slider :show-tooltip="false" @change="saveFont" :step="20" show-stops class="danmu-cap" v-model="danmuSpeed"></el-slider><span class="danmu-cap-value">{{ speedWord(danmuSpeed) }}</span>
+                  <span>弹幕速度</span
+                  ><el-slider
+                    :show-tooltip="false"
+                    @change="saveFont"
+                    :step="20"
+                    show-stops
+                    class="danmu-cap"
+                    v-model="danmuSpeed"
+                  ></el-slider
+                  ><span class="danmu-cap-value">{{ speedWord(danmuSpeed) }}</span>
                 </div>
                 <div class="danmu-cap-div">
-                  <span>显示区域</span><el-slider :show-tooltip="false" @change="saveFont" :step="25" show-stops class="danmu-cap" v-model="danmuArea"></el-slider><span class="danmu-cap-value">{{ areaWord(danmuArea) }}</span>
+                  <span>显示区域</span
+                  ><el-slider
+                    :show-tooltip="false"
+                    @change="saveFont"
+                    :step="25"
+                    show-stops
+                    class="danmu-cap"
+                    v-model="danmuArea"
+                  ></el-slider
+                  ><span class="danmu-cap-value">{{ areaWord(danmuArea) }}</span>
                 </div>
                 <div class="danmu-cap-div">
-                  <span>同屏密度<br/>(建议只在弹幕过多时使用)</span><el-slider :show-tooltip="false" @change="saveFont" :step="10" show-stops class="danmu-cap" v-model="danmuNum"></el-slider><span class="danmu-cap-value">{{ danmuNum }}%</span>
+                  <span>同屏密度<br />(建议只在弹幕过多时使用)</span
+                  ><el-slider
+                    :show-tooltip="false"
+                    @change="saveFont"
+                    :step="10"
+                    show-stops
+                    class="danmu-cap"
+                    v-model="danmuNum"
+                  ></el-slider
+                  ><span class="danmu-cap-value">{{ danmuNum }}%</span>
                 </div>
                 <div style="text-align: center">
                   <el-button size="small" @click="banCancel()">取消</el-button>
                   <el-button type="primary" size="small" @click="activeBan()">确定</el-button>
                 </div>
               </el-form>
-              <div slot="reference" @click="popoverVisible = !popoverVisible"><i class="el-icon-remove-outline"></i></div>
+              <div slot="reference" @click="popoverVisible = !popoverVisible">
+                <i class="el-icon-remove-outline"></i>
+              </div>
             </el-popover>
           </div>
           <div class="room-left-info-right-follow">
             <el-button @click="followRoom()" :type="followed ? 'info' : 'primary'" size="mini">
-              <i :class="followed ? 'el-icon-star-on' : 'el-icon-star-off'" style="font-size: 20px;"></i>
+              <i :class="followed ? 'el-icon-star-on' : 'el-icon-star-off'" style="font-size: 20px"></i>
               <span class="follow-btn" v-text="followed ? '已关注' : '关注'"></span>
             </el-button>
           </div>
@@ -115,9 +201,7 @@
       </div>
     </div>
     <div class="room-right">
-      <div class="room-right-top">
-        直播聊天
-      </div>
+      <div class="room-right-top">直播聊天</div>
       <div class="room-right-body">
         <div class="room-right-body-danmu-box" v-if="danmuSupport">
           <transition-group name="danmu">
@@ -127,30 +211,26 @@
             </div>
           </transition-group>
         </div>
-        <div class="not-support" v-else>
-          暂不支持{{getPlatform(platform)}}的弹幕
-        </div>
+        <div class="not-support" v-else>暂不支持{{ getPlatform(platform) }}的弹幕</div>
       </div>
-      <div v-if="!isBottom" @click="toBottom()" class="to-bottom">
-        返回底部
-      </div>
+      <div v-if="!isBottom" @click="toBottom()" class="to-bottom">返回底部</div>
     </div>
   </div>
 </template>
 
 <script>
-import {getRoomInfo} from "@/api/liveList";
-import {changeUserInfo, follow, unFollow} from "@/api/UserApi";
-import Login from "@/components/Login/Login";
-import ArtPlayerTest from "@/components/Test/ArtPlayerTest";
+import { getRoomInfo } from '@/api/liveList'
+import { changeUserInfo, follow, unFollow } from '@/api/UserApi'
+import Login from '@/components/Login/Login'
+import Player from '@/components/Player/Player'
 
 export default {
-  name: "Room",
-  components: {Login, ArtPlayerTest},
+  name: 'Room',
+  components: { Login, Player },
   props: ['userInfo', 'isLogin'],
   data() {
     return {
-      levelBanTxt: "等级屏蔽",
+      levelBanTxt: '等级屏蔽',
       platform: null,
       roomId: null,
       followed: false,
@@ -170,335 +250,331 @@ export default {
       banLevelTemp: 1,
       banContentListTemp: [],
       checkedContentListTemp: [],
-      newContent:"",
+      newContent: '',
       danmuStyle: {
         fontSize: 50,
-        color: "#ffffff",
+        color: '#ffffff',
         textShadow: true,
         opacity: 100,
-        fontWeight: 50,
+        fontWeight: 50
       },
       danmuSpeed: 20,
       danmuNum: 100,
       danmuArea: 100,
       form: {
-        content: "",
+        content: ''
       }
     }
   },
   methods: {
-    init(){
+    init() {
       this.platform = this.$route.query.platform
       this.roomId = this.$route.query.roomId
-      if (localStorage.getItem("danmuStyle")) {
-        this.danmuStyle = JSON.parse(localStorage.getItem("danmuStyle"))
+      if (localStorage.getItem('danmuStyle')) {
+        this.danmuStyle = JSON.parse(localStorage.getItem('danmuStyle'))
       }
-      if (localStorage.getItem("danmuSpeed")) {
-        this.danmuSpeed = Number(localStorage.getItem("danmuSpeed"))
+      if (localStorage.getItem('danmuSpeed')) {
+        this.danmuSpeed = Number(localStorage.getItem('danmuSpeed'))
       }
-      if (localStorage.getItem("danmuArea")) {
-        this.danmuArea = Number(localStorage.getItem("danmuArea"))
+      if (localStorage.getItem('danmuArea')) {
+        this.danmuArea = Number(localStorage.getItem('danmuArea'))
       }
-      getRoomInfo(this.userInfo.uid, this.platform, this.roomId)
-        .then(response => {
-          if (response.data.code == 200){
-            this.roomInfo = response.data.data
-            this.roomId = response.data.data.roomId
-            let flag = (response.data.data.isFollowed == 1)
-            this.followed = flag
-          }
-        })
+      getRoomInfo(this.userInfo.uid, this.platform, this.roomId).then((response) => {
+        if (response.data.code == 200) {
+          this.roomInfo = response.data.data
+          this.roomId = response.data.data.roomId
+          let flag = response.data.data.isFollowed == 1
+          this.followed = flag
+        }
+      })
       this.initBan()
-
     },
-    getPreList(pic){
+    getPreList(pic) {
       return [pic]
     },
-    initBan(){
-      console.log("initBan")
+    initBan() {
+      console.log('initBan')
       let banInfo
-      if (this.isLogin == "true") {
-        banInfo = this.userInfo;
+      if (this.isLogin == 'true') {
+        banInfo = this.userInfo
       } else {
-        banInfo = JSON.parse(sessionStorage.getItem('localBanInfo'));
+        banInfo = JSON.parse(sessionStorage.getItem('localBanInfo') || '')
       }
-      let banContentList = banInfo.allContent.trim().split(";");
-      if (banContentList[0].trim() == "") {
-        banContentList.splice(0, 1);
+      let banContentList = banInfo.allContent.trim().split(';')
+      if (banContentList[0].trim() == '') {
+        banContentList.splice(0, 1)
       }
-      this.banContentList = banContentList;
-      let checkedContentList = banInfo.selectedContent.trim().split(";");
-      if (checkedContentList[0].trim() == "") {
-        checkedContentList.splice(0, 1);
+      if (!banInfo) return
+      this.banContentList = banContentList
+      let checkedContentList = banInfo.selectedContent.trim().split(';')
+      if (checkedContentList[0].trim() == '') {
+        checkedContentList.splice(0, 1)
       }
-      this.checkedContentList = checkedContentList;
-      this.banActive = banInfo.isActived == "1" ? true : false;
-      if (this.platform == "douyu") {
-        this.banLevel = Number(banInfo.douyuLevel);
-      } else if (this.platform == "bilibili") {
-        this.banLevel = Number(banInfo.bilibiliLevel);
-      } else if (this.platform == "huya") {
-        this.banLevel = Number(banInfo.huyaLevel);
-      } else if (this.platform == "cc") {
-        this.banLevel = Number(banInfo.ccLevel);
-      } else if (this.platform == "egame") {
-        this.banLevel = Number(banInfo.egameLevel);
+      this.checkedContentList = checkedContentList
+      this.banActive = banInfo.isActived == '1' ? true : false
+      if (this.platform == 'douyu') {
+        this.banLevel = Number(banInfo.douyuLevel)
+      } else if (this.platform == 'bilibili') {
+        this.banLevel = Number(banInfo.bilibiliLevel)
+      } else if (this.platform == 'huya') {
+        this.banLevel = Number(banInfo.huyaLevel)
+      } else if (this.platform == 'cc') {
+        this.banLevel = Number(banInfo.ccLevel)
+      } else if (this.platform == 'egame') {
+        this.banLevel = Number(banInfo.egameLevel)
       }
-      this.banActiveTemp = this.banActive;
-      this.banLevelTemp = this.banLevel;
-      this.banContentListTemp = this.banContentList;
-      this.checkedContentListTemp = this.checkedContentList;
+      this.banActiveTemp = this.banActive
+      this.banLevelTemp = this.banLevel
+      this.banContentListTemp = this.banContentList
+      this.checkedContentListTemp = this.checkedContentList
     },
-    banCancel(){
+    banCancel() {
       this.popoverVisible = false
-      this.banActiveTemp = this.banActive;
-      this.banLevelTemp = this.banLevel;
-      this.banContentListTemp = this.banContentList;
-      this.checkedContentListTemp = this.checkedContentList;
+      this.banActiveTemp = this.banActive
+      this.banLevelTemp = this.banLevel
+      this.banContentListTemp = this.banContentList
+      this.checkedContentListTemp = this.checkedContentList
     },
-    activeBan(){
-      let _this = this;
+    activeBan() {
+      let _this = this
       if (this.isLogin == 'true') {
-        this.loading = true;
+        this.loading = true
       }
-      this.banActive = this.banActiveTemp;
-      this.banLevel = this.banLevelTemp;
-      this.banContentList = this.banContentListTemp;
-      this.checkedContentList = this.checkedContentListTemp;
-      let banContent = '';
-      for(let i=0;i<this.banContentList.length;i++) {
-        let ban = this.banContentList[i];
-        if (banContent != ''){
-          banContent = banContent + ";" + ban;
-        }else {
-          banContent = ban;
+      this.banActive = this.banActiveTemp
+      this.banLevel = this.banLevelTemp
+      this.banContentList = this.banContentListTemp
+      this.checkedContentList = this.checkedContentListTemp
+      let banContent = ''
+      for (let i = 0; i < this.banContentList.length; i++) {
+        let ban = this.banContentList[i]
+        if (banContent != '') {
+          banContent = banContent + ';' + ban
+        } else {
+          banContent = ban
         }
       }
-      let checkedContent = '';
-      for(let i=0;i<this.checkedContentList.length;i++) {
-        let ban = this.checkedContentList[i];
-        if (checkedContent != ''){
-          checkedContent = checkedContent + ";" + ban;
-        }else {
-          checkedContent = ban;
+      let checkedContent = ''
+      for (let i = 0; i < this.checkedContentList.length; i++) {
+        let ban = this.checkedContentList[i]
+        if (checkedContent != '') {
+          checkedContent = checkedContent + ';' + ban
+        } else {
+          checkedContent = ban
         }
       }
-      let banObj = this.userInfo;
-      banObj.allContent = banContent;
-      banObj.isActived = this.banActive ? "1" : "0";
-      banObj.selectedContent = checkedContent;
+      let banObj = this.userInfo
+      banObj.allContent = banContent
+      banObj.isActived = this.banActive ? '1' : '0'
+      banObj.selectedContent = checkedContent
 
-      if (this.platform == "douyu") {
-        banObj.douyuLevel = this.banLevel.toString();
-      } else if (this.platform == "bilibili") {
-        banObj.bilibiliLevel = this.banLevel;
-      } else if (this.platform == "huya") {
-        banObj.huyaLevel = this.banLevel;
-      } else if (this.platform == "cc") {
-        banObj.ccLevel = this.banLevel;
+      if (this.platform == 'douyu') {
+        banObj.douyuLevel = this.banLevel.toString()
+      } else if (this.platform == 'bilibili') {
+        banObj.bilibiliLevel = this.banLevel
+      } else if (this.platform == 'huya') {
+        banObj.huyaLevel = this.banLevel
+      } else if (this.platform == 'cc') {
+        banObj.ccLevel = this.banLevel
       }
 
       if (this.isLogin == 'true') {
-        _this.$emit("changeBan", banObj);
-        changeUserInfo(this.userInfo)
-            .then(response => {
-              this.loading = false;
-              this.popoverVisible = false
-              let data = response.data
-              if(data.code == 200){
-                sessionStorage.setItem('userInfo', JSON.stringify(this.userInfo))
-                this.$notify({
-                  title: '成功',
-                  message: "屏蔽修改生效",
-                  duration: 2000,
-                  type: 'success',
-                  offset: 50,
-                });
-              }
+        _this.$emit('changeBan', banObj)
+        changeUserInfo(this.userInfo).then((response) => {
+          this.loading = false
+          this.popoverVisible = false
+          let data = response.data
+          if (data.code == 200) {
+            sessionStorage.setItem('userInfo', JSON.stringify(this.userInfo))
+            this.$notify({
+              title: '成功',
+              message: '屏蔽修改生效',
+              duration: 2000,
+              type: 'success',
+              offset: 50
             })
+          }
+        })
       } else {
-        sessionStorage.setItem('localBanInfo', JSON.stringify(banObj));
+        sessionStorage.setItem('localBanInfo', JSON.stringify(banObj))
         this.$notify({
           title: '成功',
-          message: "屏蔽修改生效",
+          message: '屏蔽修改生效',
           duration: 2000,
           type: 'success',
-          offset: 50,
-        });
+          offset: 50
+        })
         this.popoverVisible = false
       }
     },
-    overCheck(e){
-      let target = e.currentTarget;
-      let icon = target.lastElementChild;
-      icon.style.display="block";
+    overCheck(e) {
+      let target = e.currentTarget
+      let icon = target.lastElementChild
+      icon.style.display = 'block'
     },
-    outCheck(e){
-      let target = e.currentTarget;
-      let icon = target.lastElementChild;
-      icon.style.display="none";
+    outCheck(e) {
+      let target = e.currentTarget
+      let icon = target.lastElementChild
+      icon.style.display = 'none'
     },
     deleteContent(e) {
-      let target = e.currentTarget;
-      let checkBox = target.previousElementSibling;
-      let delContent = checkBox.lastElementChild.innerText;
+      let target = e.currentTarget
+      let checkBox = target.previousElementSibling
+      let delContent = checkBox.lastElementChild.innerText
       let list = this.banContentListTemp
       for (var i = 0; i < list.length; i++) {
-        if (list[i] == delContent){
-          this.banContentListTemp.splice(i, 1);
-          break;
+        if (list[i] == delContent) {
+          this.banContentListTemp.splice(i, 1)
+          break
         }
       }
       let list2 = this.checkedContentListTemp
       for (var j = 0; j < list2.length; j++) {
-        if (list2[j] == delContent){
-          this.checkedContentListTemp.splice(j, 1);
-          break;
+        if (list2[j] == delContent) {
+          this.checkedContentListTemp.splice(j, 1)
+          break
         }
       }
     },
-    addBan(value){
-      if (this.banContentList.indexOf(value) > -1){
+    addBan(value) {
+      if (this.banContentList.indexOf(value) > -1) {
         this.$notify({
           title: '提醒',
           message: '关键词重复数',
           type: 'warning',
-          position: "bottom-right",
-          duration: "1500",
+          position: 'bottom-right',
+          duration: '1500',
           showClose: false
-        });
-      } else if(value.indexOf(";") > -1) {
+        })
+      } else if (value.indexOf(';') > -1) {
         this.$notify({
           title: '提醒',
           message: '屏蔽词不能包含“;”',
           type: 'warning',
-          position: "bottom-right",
-          duration: "1500",
+          position: 'bottom-right',
+          duration: '1500',
           showClose: false
-        });
+        })
       } else {
-        this.banContentListTemp.push(value);
-        this.newContent = "";
+        this.banContentListTemp.push(value)
+        this.newContent = ''
       }
     },
-    hasNewContent(value){
-      if(value==""||value==undefined||value==null){
-        return false;
+    hasNewContent(value) {
+      if (value == '' || value == undefined || value == null) {
+        return false
       }
-      return true;
+      return true
     },
-    getUrl(){
-      if (this.platform == 'bilibili'){
+    getUrl() {
+      if (this.platform == 'bilibili') {
         return 'https://live.bilibili.com/' + this.roomId
       }
-      if (this.platform == 'douyu'){
+      if (this.platform == 'douyu') {
         return 'https://www.douyu.com/' + this.roomId
       }
-      if (this.platform == 'huya'){
+      if (this.platform == 'huya') {
         return 'https://m.huya.com/' + this.roomId
       }
-      if (this.platform == 'cc'){
+      if (this.platform == 'cc') {
         return 'https://cc.163.com/' + this.roomId
       }
     },
-    getPlatform(platForm){
-      if (platForm == 'bilibili'){
+    getPlatform(platForm) {
+      if (platForm == 'bilibili') {
         return '哔哩哔哩'
       }
-      if (platForm == 'douyu'){
+      if (platForm == 'douyu') {
         return '斗鱼'
       }
-      if (platForm == 'huya'){
+      if (platForm == 'huya') {
         return '虎牙'
       }
-      if (platForm == 'cc'){
+      if (platForm == 'cc') {
         return '网易CC'
       }
-      if (platForm == 'egame'){
+      if (platForm == 'egame') {
         return '企鹅电竞'
       }
     },
-    isLive(){
+    isLive() {
       let state = this.roomInfo.isLive
-      if (state == "0"){
+      if (state == '0') {
         return false
-      }else {
+      } else {
         return true
       }
     },
-    notSupport(){
+    notSupport() {
       this.danmuSupport = false
     },
-    newDanmuSend(newDanmu){
+    newDanmuSend(newDanmu) {
       let _this = this
-      if (_this.danmuList.length >= 200){
-        this.danmuList.splice(0,100)
+      if (_this.danmuList.length >= 200) {
+        this.danmuList.splice(0, 100)
       }
       this.danmuList.push(newDanmu)
       _this.$nextTick(() => {
-        if(this.isBottom){
-          var container = document.getElementsByClassName("room-right-body")[0];
-          container.scrollTop  = container.scrollHeight;
+        if (this.isBottom) {
+          var container = document.getElementsByClassName('room-right-body')[0]
+          container.scrollTop = container.scrollHeight
         }
-      });
+      })
     },
-    toBottom(){
+    toBottom() {
       let _this = this
       _this.$nextTick(() => {
-        var container = document.getElementsByClassName("room-right-body")[0];
-        container.scrollTop  = container.scrollHeight;
-      });
+        var container = document.getElementsByClassName('room-right-body')[0]
+        container.scrollTop = container.scrollHeight
+      })
       this.isBottom = true
     },
     listenerFunction(e) {
-      document.addEventListener('scroll', this.handleScroll, true);
+      document.addEventListener('scroll', this.handleScroll, true)
     },
-    handleScroll () {
-      let target = document.getElementsByClassName("room-right-body")[0]
-      if((target.scrollHeight-target.clientHeight)-target.scrollTop > 10){
-          this.isBottom = false
-      }else{
+    handleScroll() {
+      let target = document.getElementsByClassName('room-right-body')[0]
+      if (target.scrollHeight - target.clientHeight - target.scrollTop > 10) {
+        this.isBottom = false
+      } else {
         this.isBottom = true
       }
     },
-    handleLogin(result, userInfo){
+    handleLogin(result, userInfo) {
       let _this = this
-      if(result == "success"){
-        _this.$emit("loginSuccess",userInfo)
+      if (result == 'success') {
+        _this.$emit('loginSuccess', userInfo)
         this.dialogVisible = false
       }
-      if(this.isLogin == 'false' && result == "cancel"){
+      if (this.isLogin == 'false' && result == 'cancel') {
         this.dialogVisible = false
       }
     },
-    followRoom(){
-      if (this.isLogin == 'false'){
+    followRoom() {
+      if (this.isLogin == 'false') {
         this.dialogVisible = true
-      }else{
-        if(!this.followed){
-          follow(this.roomInfo.platForm, this.roomId, this.userInfo.uid)
-              .then(response => {
-                let data = response.data
-                if(data.code == 200) {
-                  this.$message({
-                    message: '关注成功',
-                    type: 'success'
-                  });
-                }
-                this.followed = true
+      } else {
+        if (!this.followed) {
+          follow(this.roomInfo.platForm, this.roomId, this.userInfo.uid).then((response) => {
+            let data = response.data
+            if (data.code == 200) {
+              this.$message({
+                message: '关注成功',
+                type: 'success'
               })
-        }else {
-          unFollow(this.roomInfo.platForm, this.roomId, this.userInfo.uid)
-              .then(response => {
-                let data = response.data
-                if(data.code == 200) {
-                  this.$message({
-                    message: '已取消关注',
-                    type: 'info'
-                  });
-                }
-                this.followed = false
+            }
+            this.followed = true
+          })
+        } else {
+          unFollow(this.roomInfo.platForm, this.roomId, this.userInfo.uid).then((response) => {
+            let data = response.data
+            if (data.code == 200) {
+              this.$message({
+                message: '已取消关注',
+                type: 'info'
               })
+            }
+            this.followed = false
+          })
         }
       }
     },
@@ -510,99 +586,99 @@ export default {
     speedWord(value) {
       switch (value) {
         case 0:
-          return "极慢"
+          return '极慢'
         case 20:
-          return "慢"
+          return '慢'
         case 40:
-          return "适中"
+          return '适中'
         case 60:
-          return "快"
+          return '快'
         case 80:
-          return "很快"
+          return '很快'
         case 100:
-          return "极快"
+          return '极快'
       }
     },
     weightWord(value) {
       switch (value) {
         case 0:
-          return "针细"
+          return '针细'
         case 50:
-          return "适中"
+          return '适中'
         case 100:
-          return "超粗"
+          return '超粗'
       }
     },
     areaWord(value) {
       switch (value) {
         case 0:
-          return "建议直接关闭弹幕"
+          return '建议直接关闭弹幕'
         case 25:
-          return "1/4屏"
+          return '1/4屏'
         case 50:
-          return "半屏"
+          return '半屏'
         case 75:
-          return "3/4屏"
+          return '3/4屏'
         case 100:
-          return "全屏"
+          return '全屏'
       }
     },
     numWord(value) {
       switch (value) {
         case 0:
-          return "很少"
+          return '很少'
         case 25:
-          return "较少"
+          return '较少'
         case 50:
-          return "中等"
+          return '中等'
         case 75:
-          return "大量"
+          return '大量'
         case 100:
-          return "无限"
+          return '无限'
       }
     }
   },
   created() {
-    this.listenerFunction();
+    this.listenerFunction()
   },
   mounted() {
     this.init()
   },
   computed: {
-    banContentListComputed: function() {
+    banContentListComputed: function () {
       return this.banContentListTemp.filter((item) => {
-        return item.trim()!=null && item.trim()!=''
+        return item.trim() != null && item.trim() != ''
       })
-    },
+    }
   },
-  watch:{
-    'isLogin': function (val){
+  watch: {
+    isLogin: function (val) {
       this.popoverVisible = false
       this.initBan()
-      getRoomInfo(this.userInfo.uid, this.platform, this.roomId)
-          .then(response => {
-            if (response.data.code == 200){
-              this.roomInfo = response.data.data
-              this.roomId = response.data.data.roomId
-              let flag = (response.data.data.isFollowed == 1)
-              this.followed = flag
-            }
-          })
+      getRoomInfo(this.userInfo.uid, this.platform, this.roomId).then((response) => {
+        if (response.data.code == 200) {
+          this.roomInfo = response.data.data
+          this.roomId = response.data.data.roomId
+          let flag = response.data.data.isFollowed == 1
+          this.followed = flag
+        }
+      })
     },
-    '$route' (to, from) { //监听路由是否变化
-      if(to.query.roomId != from.query.roomId){
-        this.$router.go(0);
+    $route(to, from) {
+      //监听路由是否变化
+      if (to.query.roomId != from.query.roomId) {
+        this.$router.go(0)
       }
     }
   },
-  beforeDestroy(){
-    document.removeEventListener("scroll", this.handleScroll, true);
+  beforeDestroy() {
+    document.removeEventListener('scroll', this.handleScroll, true)
     console.log('销毁room')
-  },
+  }
 }
 </script>
 <style>
-.el-slider__runway{
+.el-slider__runway {
   position: absolute;
   top: 0px;
   width: 200px;
@@ -611,16 +687,16 @@ export default {
 </style>
 
 <style scoped>
-.room-main-container{
+.room-main-container {
   height: 100%;
   width: 100%;
 }
-.room-left{
+.room-left {
   position: relative;
   width: 78%;
   height: 100%;
 }
-.room-left-video{
+.room-left-video {
   position: absolute;
   width: 100%;
   /* height: 84%; */
@@ -629,7 +705,7 @@ export default {
   left: 0px;
   bottom: 80px;
 }
-.room-left-video-notLive{
+.room-left-video-notLive {
   position: absolute;
   top: 0px;
   left: 0px;
@@ -647,14 +723,14 @@ export default {
   color: #939495;
   background-color: black;
 }
-.room-left-info{
+.room-left-info {
   width: 100%;
   height: 80px;
   position: absolute;
   bottom: 0px;
   left: 0px;
 }
-.room-right{
+.room-right {
   /*background-color: #e0e0e0;*/
   width: 22%;
   height: 92%;
@@ -662,13 +738,13 @@ export default {
   top: 50px;
   right: 0px;
   /*box-shadow: #2b2b2b 0px 0px 10px 1px inset;*/
-  border-left:1px solid #c8c8c9;
+  border-left: 1px solid #c8c8c9;
 }
-.room-left-video-play{
+.room-left-video-play {
   width: 100%;
   height: 100%;
 }
-.room-left-info-head{
+.room-left-info-head {
   float: left;
   margin-top: 9px;
   margin-left: 8px;
@@ -677,21 +753,21 @@ export default {
   box-shadow: #2b2b2b 0px 0px 5px 1px;
   border-radius: 10px;
 }
-.room-left-info-after-head{
+.room-left-info-after-head {
   float: left;
   margin-left: 10px;
   margin-top: 8px;
 }
-.room-left-info-after-head-name{
+.room-left-info-after-head-name {
   font-weight: bold;
   font-size: 20px;
 }
-.room-left-info-after-head-owner{
+.room-left-info-after-head-owner {
   margin-top: 10px;
   font-weight: bold;
   font-size: 15px;
 }
-.info-isLive{
+.info-isLive {
   margin-top: 6px;
   margin-right: 5px;
   float: left;
@@ -702,9 +778,9 @@ export default {
   font-size: 5px;
   font-weight: 600;
   text-align: center;
-  color: #F3F6F8;
+  color: #f3f6f8;
 }
-.info-notLive{
+.info-notLive {
   margin-top: 6px;
   margin-right: 5px;
   float: left;
@@ -715,9 +791,9 @@ export default {
   font-size: 5px;
   font-weight: 600;
   text-align: center;
-  color: #F3F6F8;
+  color: #f3f6f8;
 }
-.head-pic{
+.head-pic {
   border-radius: 10px;
   height: 100%;
   width: 100%;
@@ -728,49 +804,49 @@ export default {
 .el-icon-arrow-down {
   font-size: 12px;
 }
-.room-left-info-right{
+.room-left-info-right {
   float: right;
   margin-top: 8px;
   margin-right: 10px;
   font-size: 35px;
 }
-.room-left-info-right-setting{
+.room-left-info-right-setting {
   float: right;
   margin-right: 40px;
 }
-.room-left-info-right-link{
+.room-left-info-right-link {
   margin-top: 5px;
   float: right;
   margin-right: 25px;
   transition: all 0.2s;
 }
-.room-left-info-right-link:hover{
+.room-left-info-right-link:hover {
   cursor: pointer;
   transform: scale(1.2);
 }
-.room-left-info-right-ban{
+.room-left-info-right-ban {
   margin-top: 5px;
   float: right;
   margin-right: 25px;
   transition: all 0.2s;
 }
-.room-left-info-right-ban:hover{
+.room-left-info-right-ban:hover {
   cursor: pointer;
   transform: scale(1.15);
 }
-.room-left-info-right-follow{
+.room-left-info-right-follow {
   float: right;
   margin-right: 25px;
   transition: all 0.1s;
 }
-.room-left-info-right-follow:hover{
+.room-left-info-right-follow:hover {
   transform: scale(1.08);
 }
-.follow-btn{
+.follow-btn {
   margin-left: 5px;
   font-size: 15px;
 }
-.room-right-top{
+.room-right-top {
   width: 100%;
   height: 40px;
   /*flex 布局*/
@@ -782,9 +858,9 @@ export default {
   text-align: justify;
   font-weight: bold;
   font-size: 20px;
-  border-bottom:1px solid #c8c8c9;
+  border-bottom: 1px solid #c8c8c9;
 }
-.room-right-body{
+.room-right-body {
   overflow-x: hidden;
   overflow-y: auto;
   width: 100%;
@@ -801,32 +877,32 @@ export default {
   border-radius: 10px;
   background: #8e8e8e;
 }
-.danmu{
+.danmu {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
 }
-.room-right-show-danmu{
+.room-right-show-danmu {
   margin-top: 10px;
   margin-left: 10px;
   font-size: 15px;
   width: 94%;
 }
-.danmu-name{
+.danmu-name {
   float: left;
   font-weight: bold;
 }
-.danmu-msg{
+.danmu-msg {
   margin-left: 5px;
   font-weight: normal;
   /*display:block; */
-  white-space:pre-wrap;
-  word-wrap:break-word;
-  overflow:hidden ;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  overflow: hidden;
 }
-.to-bottom{
+.to-bottom {
   position: absolute;
   bottom: 80px;
   background-color: rgba(54, 51, 51, 0.7);
@@ -844,11 +920,11 @@ export default {
   justify-content: center;
   text-align: justify;
 }
-.to-bottom:hover{
+.to-bottom:hover {
   cursor: pointer;
   background-color: #4e4c4c;
 }
-.not-support{
+.not-support {
   margin-top: 20px;
   font-weight: normal;
   text-align: center;
@@ -856,19 +932,19 @@ export default {
 .el-input-number {
   width: 80px;
 }
-.global-ban{
+.global-ban {
   font-weight: normal;
   font-size: 20px;
-  color: #409EFF;
+  color: #409eff;
   margin-bottom: 10px;
 }
 .el-input {
   width: 150px;
 }
-.ban-content-btn{
+.ban-content-btn {
   margin-left: 10px;
 }
-.ban-content-div{
+.ban-content-div {
   display: flex;
   /*实现垂直居中*/
   align-items: center;
@@ -877,7 +953,7 @@ export default {
   text-align: justify;
   margin-bottom: 10px;
 }
-.ban-content-list{
+.ban-content-list {
   min-height: 20px;
   max-height: 200px;
   width: 100%;
@@ -900,14 +976,14 @@ export default {
   width: 100%;
 }
 .room-left-info-right-ban-login {
-  color: #007ACC;
+  color: #007acc;
   transition: all 0.1s;
 }
 .room-left-info-right-ban-login:hover {
   transform: scale(1.1);
   cursor: pointer;
 }
-.ban-content-list-icon{
+.ban-content-list-icon {
   display: none;
   font-size: 15px;
   position: absolute;
@@ -915,30 +991,41 @@ export default {
   top: 3px;
   color: #fc5e5e;
 }
-.ban-content-list-icon:hover{
+.ban-content-list-icon:hover {
   cursor: pointer;
   color: red;
 }
-a:link { text-decoration: none;color: #4e4c4c}
-a:active { text-decoration:blink}
-a:hover { text-decoration:underline;color: #4e4c4c}
-a:visited { text-decoration: none;color: #4e4c4c}
-.danmu-style-title{
+a:link {
+  text-decoration: none;
+  color: #4e4c4c;
+}
+a:active {
+  text-decoration: blink;
+}
+a:hover {
+  text-decoration: underline;
+  color: #4e4c4c;
+}
+a:visited {
+  text-decoration: none;
+  color: #4e4c4c;
+}
+.danmu-style-title {
   width: 100%;
   color: #3a8ee6;
   font-size: 20px;
 }
-.danmu-cap{
+.danmu-cap {
   margin-left: 22%;
   width: 180px;
 }
-.danmu-cap-div{
+.danmu-cap-div {
   margin-top: 10px;
   margin-bottom: 20px;
   position: relative;
   width: 100%;
 }
-.danmu-cap-value{
+.danmu-cap-value {
   position: absolute;
   top: 0px;
   right: 10px;
