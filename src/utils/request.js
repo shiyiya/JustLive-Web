@@ -5,7 +5,7 @@ import {
 import router from '../router/index.js'  //注意路径与文件名
 
 const service = axios.create({
-    // baseURL: 'https://yj1211.work/', // api 的 base_url
+    baseURL: 'http://live.yj1211.work/', // api 的 base_url
     timeout: 50000 // request timeout
 })
 
