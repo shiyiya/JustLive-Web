@@ -298,13 +298,13 @@ export default {
       if (this.isLogin == 'true') {
         banInfo = this.userInfo
       } else {
-        banInfo = JSON.parse(sessionStorage.getItem('localBanInfo') || '')
+        banInfo = JSON.parse(sessionStorage.getItem('localBanInfo') || 'null')
       }
+      if (!banInfo) return
       let banContentList = banInfo.allContent.trim().split(';')
       if (banContentList[0].trim() == '') {
         banContentList.splice(0, 1)
       }
-      if (!banInfo) return
       this.banContentList = banContentList
       let checkedContentList = banInfo.selectedContent.trim().split(';')
       if (checkedContentList[0].trim() == '') {
