@@ -10,6 +10,7 @@ import OPlayer from '@oplayer/core'
 import ui from '@oplayer/ui'
 import hls from '@oplayer/hls'
 import mpegts from '@oplayer/mpegts'
+import danmaku from '@oplayer/danmaku'
 
 export default {
   name: 'Player',
@@ -101,6 +102,7 @@ export default {
               }),
               hls(),
               mpegts()
+              // danmaku({ enable: true })
             ])
             .create()
 
@@ -114,9 +116,9 @@ export default {
             media: player.$video
           })
 
-          player.$root.addEventListener('resize', function () {
-            _this.danmaku.resize()
-          })
+          window.onresize = () => {
+            this.danmaku.resize()
+          }
 
           let speed = ((this.danmuSpeed + 25) / 100) * 200
 
