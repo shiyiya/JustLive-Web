@@ -5,7 +5,6 @@
 <script>
 import Global from '@/components/Global'
 import { getRealUrl } from '@/api/liveList'
-import Danmaku from 'danmaku'
 import OPlayer from '@oplayer/core'
 import ui from '@oplayer/ui'
 import hls from '@oplayer/hls'
