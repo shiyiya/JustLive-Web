@@ -101,28 +101,14 @@ export default {
                 ]
               }),
               hls(),
-              mpegts()
-              // danmaku({ enable: true })
+              mpegts(),
+              danmaku({ enable: true })
             ])
             .create()
 
-          var $danmaku = document.createElement('div')
-          $danmaku.className = 'danmaku'
-          $danmaku.style.cssText = `position: absolute;left: 0;top: 0;right: 0;bottom: 0;width: 100%;height: 100%;overflow: hidden;pointer-events: none;`
-          player.$root.appendChild($danmaku)
+          this.danmaku = player.plugins.danmaku
+          this.danmaku.speed = ((this.danmuSpeed + 25) / 100) * 200
 
-          this.danmaku = new Danmaku({
-            container: $danmaku,
-            media: player.$video
-          })
-
-          window.onresize = () => {
-            this.danmaku.resize()
-          }
-
-          let speed = ((this.danmuSpeed + 25) / 100) * 200
-
-          this.danmaku.speed = speed
           this.player = player
           if (this.platform == 'bilibili') {
             this.initBilibiliWs()
