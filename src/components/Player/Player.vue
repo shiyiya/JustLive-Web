@@ -95,7 +95,7 @@ export default {
                     name: `画质`,
                     children: this.quality,
                     onChange({ url }) {
-                      player.changeSource({ src: url })
+                      player.changeQuality({ src: url })
                     }
                   }
                 ]
